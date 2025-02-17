@@ -1,8 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { getCurrentUser } from "@/services/AuthService";
 
-const HomePage = async () => {
-  const user = await getCurrentUser();
+"use client"
+import { Button } from "@/components/ui/button";
+import { useUser } from "@/context/UserContext";
+
+const HomePage = () => {
+  const user = useUser()
   console.log(user);
   return (
     <div>

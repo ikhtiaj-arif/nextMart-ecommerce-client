@@ -11,8 +11,10 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "@/services/AuthService";
+import { loginUser, reCaptchaTokenVerification } from "@/services/AuthService";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { loginFormSchema } from "./loginValidation";
@@ -25,14 +27,28 @@ const LoginForm = () => {
     const form = useForm({
         resolver: zodResolver(loginFormSchema),
         defaultValues: {
-
             email: "",
             password: "",
-
         },
     });
     const { formState: { isSubmitting } } = form
 
+    const [reCaptchaStatus, setReCaptchaStatus] = useState(false)
+
+    const handleRecaptcha = async (value: string | null) => {
+        try {
+            const res = await reCaptchaTokenVerification(value!)
+            if (res.success) {
+                setReCaptchaStatus(true)
+            } else {
+                setReCaptchaStatus(false)
+
+            }
+
+        } catch (error: any) {
+            console.log(error);
+        }
+    }
 
 
     const onSubmit: SubmitHandler<FieldValues> = async (data) => {
@@ -86,8 +102,15 @@ const LoginForm = () => {
                                 </FormItem>
                             )}
                         />
+                        <div className="flex mt-3 w-full">
 
-                        <Button type="submit" className="w-full">
+                            <ReCAPTCHA
+                                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_CLIENT_KEY}
+                                onChange={handleRecaptcha}
+                                className="mx-auto"
+                            />
+                        </div>
+                        <Button disabled={reCaptchaStatus ? false : true} type="submit" className="w-full">
                             {isSubmitting ? "Logging in..." : "Login"}
                         </Button>
                     </form>
