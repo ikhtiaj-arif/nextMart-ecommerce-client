@@ -1,22 +1,42 @@
 'use client'
 
 
-import { AlignRight } from 'lucide-react';
+import { AlignRight, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from '../ui/button';
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { protectedRoutes } from '@/constants';
+import { useUser } from '@/context/UserContext';
+import { logoutUser } from '@/services/AuthService';
 
 
-export type UserProps = {
-    user?: {
-        name?: string | null | undefined,
-        email?: string | null | undefined,
-        image?: string | null | undefined
-    }
-}
 // const Navbar = ({ session }: { session: UserProps | null }) => {
 const Navbar = () => {
-    const pathname = usePathname();
+
+    const { user, setIsLoading } = useUser()
+    const pathname = usePathname()
+    const router = useRouter()
+
+    const handleLogout = () => {
+        logoutUser();
+        setIsLoading(true)
+        if (protectedRoutes.some(route => pathname.match(route))) {
+            router.push("/")
+        }
+    }
+
     const [toggle, setToggle] = useState(false);
 
     // useEffect(() => {
@@ -92,40 +112,47 @@ const Navbar = () => {
                     </div>
                 </div>
 
-                <div className="hidden lg:flex lg:ml-[-120px]">
-                    <ul className="flex space-x-6 text-gray-800">
-                        <li className="hover:text-gray-600">
-                            <Link href="/" className={isActive('/')} >Home</Link>
-                        </li>
-                        <li className="hover:text-gray-600">
-                            <Link href="/projects" className={isActive('/projects')}>Projects</Link>
-                        </li>
-                        <li className="hover:text-gray-600">
-                            <Link href="/blog" className={isActive('/blog')}>Blog</Link>
-                        </li>
-                        <li className="hover:text-gray-600">
-                            <Link href="/contact" className={isActive('/contact')}>Contact</Link>
-                        </li>
-                        <li className="hover:text-gray-600">
-                            <Link href="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
-                        </li>
-                    </ul>
-                </div>
+
 
                 <div className="hidden md:flex items-center ">
 
-                    {/* {
-                        session?.user ? (
-                            <button onClick={() => signOut()} className="border border-red-500 text-red-500 px-5 py-2 rounded-full hover:bg-red-500 hover:text-black transition duration-200">
-                                Logout
-                            </button>) :
-                            (<Link
-                                href="/login"
-                                className="border border-teal-500 text-teal-500 px-5 py-2 rounded-full hover:bg-teal-500 hover:text-black transition duration-200"
-                            >
+                    {!user ?
+                        <Link href="/login">
+                            <Button variant="outline" className='rounded-full'>
                                 Login
-                            </Link>)
-                    } */}
+                            </Button>
+                        </Link>
+                        :
+                        <>
+                            <Link href="/create-shop">
+                                <Button variant="outline" className='rounded-full'>
+                                    Create shop
+                                </Button>
+                            </Link>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger>
+                                    <Avatar>
+                                        <AvatarImage src="https://github.com/shadcn.png" />
+                                        <AvatarFallback>User</AvatarFallback>
+                                    </Avatar>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                                    <DropdownMenuItem>Dashboard</DropdownMenuItem>
+                                    <DropdownMenuItem>My Shop</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className='text-red-500 cursor-pointer' onClick={handleLogout}>
+                                        <LogOut />
+                                        <span>Log Out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu></>
+
+                    }
+
                 </div>
             </div>
         </div>

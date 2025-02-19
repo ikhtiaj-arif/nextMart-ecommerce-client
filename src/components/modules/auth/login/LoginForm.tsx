@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { loginUser, reCaptchaTokenVerification } from "@/services/AuthService";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
@@ -35,11 +36,19 @@ const LoginForm = () => {
 
     const [reCaptchaStatus, setReCaptchaStatus] = useState(false)
 
+    const searchParams = useSearchParams()
+    const redirect = searchParams.get("redirectPath")
+    const router = useRouter()
+
+
+
+
     const handleRecaptcha = async (value: string | null) => {
         try {
             const res = await reCaptchaTokenVerification(value!)
             if (res.success) {
                 setReCaptchaStatus(true)
+
             } else {
                 setReCaptchaStatus(false)
 
@@ -57,6 +66,11 @@ const LoginForm = () => {
             const res = await loginUser(data)
             if (res.success) {
                 toast.success(res?.message)
+                if (redirect) {
+                    router.push(redirect)
+                } else {
+                    router.push("/profile")
+                }
             } else {
                 toast.error(res?.message)
             }
@@ -105,7 +119,7 @@ const LoginForm = () => {
                         <div className="flex mt-3 w-full">
 
                             <ReCAPTCHA
-                                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_CLIENT_KEY}
+                                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_CLIENT_KEY as string}
                                 onChange={handleRecaptcha}
                                 className="mx-auto"
                             />
